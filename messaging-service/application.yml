@@ -1,3 +1,7 @@
+server:
+  port: 8082
 spring:
-  config:
-    import: "configserver:" 
+  cassandra:
+    keyspace-name: celebrating_messages
+    contact-points: localhost
+    port: 9042

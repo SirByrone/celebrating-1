@@ -13,10 +13,10 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AuthProvider()..loadToken(),
       child: MaterialApp(
-        title: 'Celebrating App',
+        title: 'Celeb-rating App',
         theme: ThemeData(primarySwatch: Colors.blue),
         home: LoginPage(),
       ),
     );
   }
-}
+} 

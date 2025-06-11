@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001" author="celebrating">
+        <createTable tableName="posts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="celebration_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="media_urls" type="TEXT"/>
+            <column name="likes_count" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comments_count" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_posts_user_id" tableName="posts">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_posts_celebration_type" tableName="posts">
+            <column name="celebration_type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_posts_created_at" tableName="posts">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog> 

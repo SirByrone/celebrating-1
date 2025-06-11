@@ -30,43 +30,29 @@ class _HomeFeedState extends State<HomeFeed>
   @override
   void initState() {
     super.initState();
-    // Initialize TabController for the top tabs (Lifestyle, Music, etc.)
     tabController = TabController(length: 5, vsync: this);
     _checkAuthentication();
     _fetchPosts();
   }
 
-  // Dispose of the TabController when the state is removed to prevent memory leaks
-  @override
-  void dispose() {
-    tabController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  // Checks user authentication status and navigates to login if not authenticated
   Future<void> _checkAuthentication() async {
     final isAuthenticated = await AuthService.isAuthenticated();
     if (!isAuthenticated && mounted) {
-      // Ensure the widget is still in the widget tree before navigating
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     }
   }
 
-  // Logs out the user and navigates to the login page
   Future<void> _logout() async {
     await AuthService.logout();
     if (mounted) {
-      // Ensure the widget is still in the widget tree before navigating
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     }
   }
 
-  // Fetches posts from the API or uses mock data if API call fails
   Future<void> _fetchPosts() async {
     try {
       final response = await http.get(
@@ -78,7 +64,6 @@ class _HomeFeedState extends State<HomeFeed>
         final List<dynamic> postsJson = jsonDecode(response.body);
         setState(() {
           _posts = postsJson.cast<Map<String, dynamic>>();
-          // Initialize likes, comments, and liked status for fetched posts
           for (var post in _posts) {
             String postId = post['id'].toString();
             _likes[postId] = post['likes'] ?? 0;
@@ -88,146 +73,137 @@ class _HomeFeedState extends State<HomeFeed>
         });
       } else {
         print('Failed to fetch posts: ${response.statusCode}');
-        // Fallback to mock data if API call fails
-        _loadMockPosts();
       }
     } catch (e) {
       print('Error fetching posts: $e');
-      // Fallback to mock data if an error occurs
-      _loadMockPosts();
+    }
+
+    if (_posts.isEmpty) {
+      setState(() {
+        _posts = [
+          {
+            'id': '1',
+            'name': 'Emmo Johnson',
+            'handle': 'Forcal Force',
+            'content': 'I am anticipating my award win tonight for celebrations hope to see many of you.',
+            'imageAsset': 'lib/images/feed.png',
+            'events': [
+              {
+                'title': 'Award Ceremony',
+                'date': 'May 30, 2025',
+                'location': 'Nairobi, Kenya',
+                'description': 'Join Emmo Johnson at the annual awards ceremony where they are nominated for Best Actor.',
+              },
+              {
+                'title': 'Charity Gala',
+                'date': 'June 5, 2025',
+                'location': 'Mombasa, Kenya',
+                'description': 'A charity event hosted by Emmo to support local communities.',
+              },
+            ],
+            'likes': 68,
+            'comments': 14000,
+          },
+          {
+            'id': '2',
+            'name': 'David Williams',
+            'handle': 'Lorenzo',
+            'content': 'Going for vacation suggest destination? I need warm place with sandy beaches',
+            'imageAsset': 'lib/images/feed.png',
+            'events': [
+              {
+                'title': 'Beach Vacation Q&A',
+                'date': 'June 1, 2025',
+                'location': 'Online',
+                'description': 'David will host a live Q&A session to discuss vacation plans and take suggestions.',
+              },
+            ],
+            'likes': 120,
+            'comments': 5000,
+          },
+          {
+            'id': '3',
+            'name': 'Sarah Kiptoo',
+            'handle': 'Tech Innovator',
+            'content': 'Just launched a new AI tool to revolutionize event planning! Excited to see how the community uses it.',
+            'imageAsset': 'lib/images/feed.png',
+            'events': [
+              {
+                'title': 'AI Tool Demo',
+                'date': 'June 10, 2025',
+                'location': 'Virtual Event',
+                'description': 'Sarah will demo her new AI tool for event planning.',
+              },
+            ],
+            'likes': 250,
+            'comments': 8900,
+          },
+          {
+            'id': '4',
+            'name': 'Liam Otieno',
+            'handle': 'CodeMaster',
+            'content': 'Working on a new app feature that will change how we connect with celebs. Stay tuned!',
+            'imageAsset': 'lib/images/feed.png',
+            'events': [
+              {
+                'title': 'App Feature Launch',
+                'date': 'June 15, 2025',
+                'location': 'Nairobi, Kenya',
+                'description': 'Join Liam for the launch of the new Celebrating app feature.',
+              },
+            ],
+            'likes': 180,
+            'comments': 3200,
+          },
+          {
+            'id': '5',
+            'name': 'Aisha Mwangi',
+            'handle': 'StyleIcon',
+            'content': 'Dropped my new fashion line inspired by tech aesthetics. Check it out!',
+            'imageAsset': 'lib/images/feed.png',
+            'events': [
+              {
+                'title': 'Fashion Line Launch',
+                'date': 'June 20, 2025',
+                'location': 'Mombasa, Kenya',
+                'description': 'Aisha will showcase her tech-inspired fashion line.',
+              },
+            ],
+            'likes': 300,
+            'comments': 7500,
+          },
+          {
+            'id': '6',
+            'name': 'Mark Ndungu',
+            'handle': 'TechGuru',
+            'content': 'Hosting a hackathon to innovate solutions for the Celebrating app. Join us!',
+            'imageAsset': 'lib/images/feed.png',
+            'events': [
+              {
+                'title': 'Hackathon',
+                'date': 'June 25, 2025',
+                'location': 'Kisumu, Kenya',
+                'description': 'Mark invites developers to innovate for the Celebrating app.',
+              },
+            ],
+            'likes': 400,
+            'comments': 10000,
+          },
+        ];
+        for (var post in _posts) {
+          String postId = post['id'];
+          _likes[postId] = post['likes'];
+          _comments[postId] = post['comments'];
+          _isLiked[postId] = false;
+        }
+      });
     }
   }
 
-  // Loads predefined mock post data
-  void _loadMockPosts() {
-    setState(() {
-      _posts = [
-        {
-          'id': '1',
-          'name': 'Emmo Johnson',
-          'handle': 'Forcal Force',
-          'content': 'I am anticipating my award win tonight for celebrations hope to see many of you.',
-          'imageAsset': 'lib/images/feed.png',
-          'events': [
-            {
-              'title': 'Award Ceremony',
-              'date': 'May 30, 2025',
-              'location': 'Nairobi, Kenya',
-              'description': 'Join Emmo Johnson at the annual awards ceremony where they are nominated for Best Actor.',
-            },
-            {
-              'title': 'Charity Gala',
-              'date': 'June 5, 2025',
-              'location': 'Mombasa, Kenya',
-              'description': 'A charity event hosted by Emmo to support local communities.',
-            },
-          ],
-          'likes': 68,
-          'comments': 14000,
-        },
-        {
-          'id': '2',
-          'name': 'David Williams',
-          'handle': 'Lorenzo',
-          'content': 'Going for vacation suggest destination? I need warm place with sandy beaches',
-          'imageAsset': 'lib/images/feed.png',
-          'events': [
-            {
-              'title': 'Beach Vacation Q&A',
-              'date': 'June 1, 2025',
-              'location': 'Online',
-              'description': 'David will host a live Q&A session to discuss vacation plans and take suggestions.',
-            },
-          ],
-          'likes': 120,
-          'comments': 5000,
-        },
-        {
-          'id': '3',
-          'name': 'Sarah Kiptoo',
-          'handle': 'Tech Innovator',
-          'content': 'Just launched a new AI tool to revolutionize event planning! Excited to see how the community uses it.',
-          'imageAsset': 'lib/images/feed.png',
-          'events': [
-            {
-              'title': 'AI Tool Demo',
-              'date': 'June 10, 2025',
-              'location': 'Virtual Event',
-              'description': 'Sarah will demo her new AI tool for event planning.',
-            },
-          ],
-          'likes': 250,
-          'comments': 8900,
-        },
-        {
-          'id': '4',
-          'name': 'Liam Otieno',
-          'handle': 'CodeMaster',
-          'content': 'Working on a new app feature that will change how we connect with celebs. Stay tuned!',
-          'imageAsset': 'lib/images/feed.png',
-          'events': [
-            {
-              'title': 'App Feature Launch',
-              'date': 'June 15, 2025',
-              'location': 'Nairobi, Kenya',
-              'description': 'Join Liam for the launch of the new Celebrating app feature.',
-            },
-          ],
-          'likes': 180,
-          'comments': 3200,
-        },
-        {
-          'id': '5',
-          'name': 'Aisha Mwangi',
-          'handle': 'StyleIcon',
-          'content': 'Dropped my new fashion line inspired by tech aesthetics. Check it out!',
-          'imageAsset': 'lib/images/feed.png',
-          'events': [
-            {
-              'title': 'Fashion Line Launch',
-              'date': 'June 20, 2025',
-              'location': 'Mombasa, Kenya',
-              'description': 'Aisha will showcase her tech-inspired fashion line.',
-            },
-          ],
-          'likes': 300,
-          'comments': 7500,
-        },
-        {
-          'id': '6',
-          'name': 'Mark Ndungu',
-          'handle': 'TechGuru',
-          'content': 'Hosting a hackathon to innovate solutions for the Celebrating app. Join us!',
-          'imageAsset': 'lib/images/feed.png',
-          'events': [
-            {
-              'title': 'Hackathon',
-              'date': 'June 25, 2025',
-              'location': 'Kisumu, Kenya',
-              'description': 'Mark invites developers to innovate for the Celebrating app.',
-            },
-          ],
-          'likes': 400,
-          'comments': 10000,
-        },
-      ];
-      // Initialize likes, comments, and liked status for mock posts
-      for (var post in _posts) {
-        String postId = post['id'];
-        _likes[postId] = post['likes'];
-        _comments[postId] = post['comments'];
-        _isLiked[postId] = false; // Default to not liked
-      }
-    });
-  }
-
-  // Handles celebrity search functionality
   void _searchCelebrity(String query) {
     print('Searching for celebrity: $query');
-    // Implement actual search logic here (e.g., filter _posts)
   }
 
-  // Toggles the like status of a post and updates the like count
   void _likePost(String postId) async {
     try {
       final response = await http.post(
@@ -252,7 +228,6 @@ class _HomeFeedState extends State<HomeFeed>
     }
   }
 
-  // Shows a dialog to add a comment to a post
   void _commentPost(String postId) {
     final TextEditingController commentController = TextEditingController();
     showDialog(
@@ -261,12 +236,12 @@ class _HomeFeedState extends State<HomeFeed>
         title: Text('Add Comment', style: GoogleFonts.andika()),
         content: TextField(
           controller: commentController,
-          decoration: const InputDecoration(hintText: 'Write a comment...'),
+          decoration: InputDecoration(hintText: 'Write a comment...'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
@@ -288,19 +263,18 @@ class _HomeFeedState extends State<HomeFeed>
                 print('Error adding comment: $e');
               }
             },
-            child: const Text('Post'),
+            child: Text('Post'),
           ),
         ],
       ),
     );
   }
 
-  // Displays a modal bottom sheet with a list of events for a celebrity
   void _showEvents(String celebrityName, List<Map<String, String>> events) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allows the sheet to be full height
-      shape: const RoundedRectangleBorder(
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
@@ -308,9 +282,9 @@ class _HomeFeedState extends State<HomeFeed>
         final screenHeight = MediaQuery.of(context).size.height;
 
         return DraggableScrollableSheet(
-          initialChildSize: 0.7, // Initial height of the sheet
-          minChildSize: 0.3, // Minimum height when dragged down
-          maxChildSize: 0.9, // Maximum height when dragged up
+          initialChildSize: 0.7,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
           builder: (_, controller) => Container(
             padding: EdgeInsets.all(screenWidth * 0.04),
             child: Column(
@@ -327,7 +301,7 @@ class _HomeFeedState extends State<HomeFeed>
                 SizedBox(height: screenHeight * 0.02),
                 Expanded(
                   child: ListView.builder(
-                    controller: controller, // Link ListView to DraggableScrollableSheet controller
+                    controller: controller,
                     itemCount: events.length,
                     itemBuilder: (context, index) {
                       final event = events[index];
@@ -349,7 +323,6 @@ class _HomeFeedState extends State<HomeFeed>
     );
   }
 
-  // Builds a single event display box
   Widget _buildEventBox({
     required int index,
     required String title,
@@ -375,7 +348,7 @@ class _HomeFeedState extends State<HomeFeed>
             color: Colors.amber.withOpacity(0.3),
             spreadRadius: 2,
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -450,18 +423,18 @@ class _HomeFeedState extends State<HomeFeed>
     });
     // You can add navigation logic here based on the index
     // For example, using a PageView or Navigator to different screens
-    print('Tapped on bottom navigation index: $index');
+    print('Tapped on index: $index');
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // final screenHeight = MediaQuery.of(context).size.height; // Not directly used here, but kept for context
+    final screenHeight = MediaQuery.of(context).size.height;
 
     // A list of widgets to display for each tab in the bottom navigation bar
-    // Replace the Center widgets with your actual screens for Reels, Create, Notifications, and Profile
+    // For now, we'll just show text. You'd replace these with your actual pages.
     final List<Widget> _widgetOptions = <Widget>[
-      _buildFeedContent(), // This is the main feed content
+      _buildFeedContent(), // This is where your existing feed content goes
       Center(child: Text('Reels Content', style: GoogleFonts.andika(fontSize: screenWidth * 0.06, color: Colors.amber[800]))),
       Center(child: Text('Create Content', style: GoogleFonts.andika(fontSize: screenWidth * 0.06, color: Colors.amber[800]))),
       Center(child: Text('Notifications Content', style: GoogleFonts.andika(fontSize: screenWidth * 0.06, color: Colors.amber[800]))),
@@ -471,18 +444,26 @@ class _HomeFeedState extends State<HomeFeed>
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.grey[100],
-        // The body displays the content based on the selected bottom navigation item
-        body: _widgetOptions.elementAt(_selectedIndex),
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (scrollNotification) {
+            if (scrollNotification is ScrollUpdateNotification) {
+              setState(() {
+                _scrollOffset = scrollNotification.metrics.pixels;
+              });
+            }
+            return false;
+          },
+          child: _widgetOptions.elementAt(_selectedIndex), // Display content based on selected bottom nav item
+        ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
-            // Light silver background color with opacity
-            color: Colors.grey[200]!.withOpacity(0.8), // Changed to light silver
+            color: Color(0xFFC7600C).withOpacity(0.2), // Light "liver" background with opacity
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 spreadRadius: 1,
                 blurRadius: 10,
-                offset: const Offset(0, -3), // Shadow at the top of the nav bar
+                offset: Offset(0, -3), // Shadow at the top
               ),
             ],
           ),
@@ -493,11 +474,11 @@ class _HomeFeedState extends State<HomeFeed>
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.video_collection), // Icon for Reels
+                icon: Icon(Icons.video_collection), // Or Icons.movie_filter
                 label: 'Reels',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.add_box_outlined), // Icon for Create (e.g., new post)
+                icon: Icon(Icons.add_box_outlined), // Or Icons.add_circle_outline
                 label: 'Create',
               ),
               BottomNavigationBarItem(
@@ -509,14 +490,14 @@ class _HomeFeedState extends State<HomeFeed>
                 label: 'Profile',
               ),
             ],
-            currentIndex: _selectedIndex, // Highlights the current active item
-            selectedItemColor: Colors.amber[800], // Gold color for selected icon and label
-            unselectedItemColor: Colors.amber[600], // Slightly lighter gold for unselected items
-            backgroundColor: Colors.transparent, // Important: make transparent to show Container's color
-            type: BottomNavigationBarType.fixed, // Ensures all labels are visible and items don't shift
-            onTap: _onItemTapped, // Callback when an item is tapped
-            selectedLabelStyle: GoogleFonts.andika(fontSize: screenWidth * 0.03, fontWeight: FontWeight.bold), // Reduced font size
-            unselectedLabelStyle: GoogleFonts.andika(fontSize: screenWidth * 0.025), // Reduced font size
+            currentIndex: _selectedIndex,
+            selectedItemColor: Colors.amber[800], // Gold color for selected icon
+            unselectedItemColor: Colors.amber[600], // Slightly lighter gold for unselected
+            backgroundColor: Colors.transparent, // Make background transparent to show Container's color
+            type: BottomNavigationBarType.fixed, // Ensures all labels are visible
+            onTap: _onItemTapped,
+            selectedLabelStyle: GoogleFonts.andika(fontSize: screenWidth * 0.035, fontWeight: FontWeight.bold),
+            unselectedLabelStyle: GoogleFonts.andika(fontSize: screenWidth * 0.03),
           ),
         ),
       ),
@@ -524,7 +505,6 @@ class _HomeFeedState extends State<HomeFeed>
   }
 
   // Renamed the existing _buildTabContent to _buildFeedContent to be more explicit
-  // This widget builds the main feed UI, including the header, search, top tabs, and post list.
   Widget _buildFeedContent() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -535,7 +515,6 @@ class _HomeFeedState extends State<HomeFeed>
 
     return Column(
       children: [
-        // Header section with app title, search bar, and logout button
         Container(
           padding: EdgeInsets.all(screenWidth * 0.02),
           decoration: BoxDecoration(
@@ -548,7 +527,7 @@ class _HomeFeedState extends State<HomeFeed>
               BoxShadow(
                 color: Colors.amber.withOpacity(0.5),
                 blurRadius: 10,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -560,8 +539,7 @@ class _HomeFeedState extends State<HomeFeed>
                   Text(
                     'Celebrating',
                     style: GoogleFonts.andika(
-                      // Font size dynamically shrinks based on scroll offset
-                      fontSize: screenWidth * 0.05 + (screenWidth * 0.03 * (1 - _scrollOffset / 200).clamp(0.0, 1.0)),
+                      fontSize: screenWidth * 0.05 + (screenWidth * 0.03 * (1 - _scrollOffset / 200).clamp(0.0, 1.0)), // Shrinks from 0.05 to 0.02
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       shadows: [
@@ -574,10 +552,9 @@ class _HomeFeedState extends State<HomeFeed>
                   ),
                   Row(
                     children: [
-                      // Search input field
                       Container(
-                        width: screenWidth * 0.3,
-                        height: screenHeight * 0.05,
+                        width: screenWidth * 0.3, // Adjusted width to match tab size
+                        height: screenHeight * 0.05, // Matches tab height
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(screenWidth * 0.03),
@@ -596,7 +573,6 @@ class _HomeFeedState extends State<HomeFeed>
                         ),
                       ),
                       SizedBox(width: screenWidth * 0.02),
-                      // Logout button
                       IconButton(
                         icon: Icon(Icons.logout, size: screenWidth * 0.06, color: Colors.white),
                         onPressed: _logout,
@@ -609,7 +585,6 @@ class _HomeFeedState extends State<HomeFeed>
           ),
         ),
         SizedBox(height: screenHeight * 0.01),
-        // Top TabBar for categories (Lifestyle, Music, etc.)
         TabBar(
           controller: tabController,
           indicatorColor: Colors.amber[600],
@@ -627,48 +602,34 @@ class _HomeFeedState extends State<HomeFeed>
           ],
         ),
         SizedBox(height: screenHeight * 0.01),
-        // TabBarView to display content for each top tab
-        Expanded( // Expanded is crucial here to make TabBarView fill remaining space
+        Expanded( // Use Expanded to ensure the TabBarView takes available space
           child: TabBarView(
             controller: tabController,
             children: [
-              // Content for the 'Lifestyle' tab (your main post feed)
-              NotificationListener<ScrollNotification>(
-                onNotification: (scrollNotification) {
-                  // Only update scroll offset for the main feed list
-                  if (scrollNotification is ScrollUpdateNotification) {
-                    setState(() {
-                      _scrollOffset = scrollNotification.metrics.pixels;
-                    });
-                  }
-                  return false;
+              ListView.builder(
+                padding: EdgeInsets.all(screenWidth * 0.02),
+                itemCount: _posts.length,
+                itemBuilder: (context, index) {
+                  final post = _posts[index];
+                  return Column(
+                    children: [
+                      _buildPost(
+                        postId: post['id'].toString(),
+                        name: post['name'],
+                        handle: post['handle'],
+                        content: post['content'],
+                        imageAsset: post['imageAsset'],
+                        events: List<Map<String, String>>.from(post['events']),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                    ],
+                  );
                 },
-                child: ListView.builder(
-                  padding: EdgeInsets.all(screenWidth * 0.02),
-                  itemCount: _posts.length,
-                  itemBuilder: (context, index) {
-                    final post = _posts[index];
-                    return Column(
-                      children: [
-                        _buildPost(
-                          postId: post['id'].toString(),
-                          name: post['name'],
-                          handle: post['handle'],
-                          content: post['content'],
-                          imageAsset: post['imageAsset'],
-                          events: List<Map<String, String>>.from(post['events']),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                      ],
-                    );
-                  },
-                ),
               ),
-              // Placeholder content for other top tabs
-              Center(child: Text('Music Content', style: GoogleFonts.andika())),
-              Center(child: Text('Sports Content', style: GoogleFonts.andika())),
-              Center(child: Text('Faith Content', style: GoogleFonts.andika())),
-              Center(child: Text('Personality Content', style: GoogleFonts.andika())),
+              Container(child: Center(child: Text('Music Content', style: GoogleFonts.andika()))),
+              Container(child: Center(child: Text('Sports Content', style: GoogleFonts.andika()))),
+              Container(child: Center(child: Text('Faith Content', style: GoogleFonts.andika()))),
+              Container(child: Center(child: Text('Personality Content', style: GoogleFonts.andika()))),
             ],
           ),
         ),
@@ -676,7 +637,6 @@ class _HomeFeedState extends State<HomeFeed>
     );
   }
 
-  // Builds a single post widget
   Widget _buildPost({
     required String postId,
     required String name,
@@ -699,7 +659,7 @@ class _HomeFeedState extends State<HomeFeed>
             color: Colors.amber.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -708,14 +668,12 @@ class _HomeFeedState extends State<HomeFeed>
         children: [
           Row(
             children: [
-              // Celebrity avatar
               CircleAvatar(
                 radius: screenWidth * 0.06,
                 backgroundImage: AssetImage(imageAsset),
                 backgroundColor: Colors.amber[100],
               ),
               SizedBox(width: screenWidth * 0.03),
-              // Celebrity name and handle
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -739,8 +697,7 @@ class _HomeFeedState extends State<HomeFeed>
             ],
           ),
           SizedBox(height: screenHeight * 0.01),
-          // Post content
-          SizedBox(
+          SizedBox( // Use SizedBox instead of Container with width for better flexibility
             width: screenWidth * 0.94,
             child: Text(
               content,
@@ -753,7 +710,6 @@ class _HomeFeedState extends State<HomeFeed>
             ),
           ),
           SizedBox(height: screenHeight * 0.01),
-          // Post image with star rating overlay
           Stack(
             children: [
               Container(
@@ -766,7 +722,7 @@ class _HomeFeedState extends State<HomeFeed>
                     BoxShadow(
                       color: Colors.amber.withOpacity(0.3),
                       blurRadius: 5,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -783,7 +739,7 @@ class _HomeFeedState extends State<HomeFeed>
                   child: Row(
                     children: List.generate(5, (index) => IconButton(
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                      constraints: BoxConstraints(),
                       icon: Icon(
                         Icons.star,
                         size: screenWidth * 0.04,
@@ -802,7 +758,6 @@ class _HomeFeedState extends State<HomeFeed>
             ],
           ),
           SizedBox(height: screenHeight * 0.01),
-          // Action row: Like, Comment, Events buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
